@@ -85,7 +85,7 @@ export class Dashboard extends React.Component {
         <h1>{this.props.label}</h1>
         <div className="py-3">
           <label for="selection" className="form-label">
-            Choose {selectionlabel}
+            Choose {selectionlabel} (Hold ⌘ to select multiple)
           </label>
           <select
             value={selection}
