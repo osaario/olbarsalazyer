@@ -23,6 +23,7 @@ export class Dashboard extends React.Component {
     selection: [],
     data: null,
     showAll: true,
+    normalize: false,
   };
   render() {
     if (!this.state.data)
@@ -83,7 +84,7 @@ export class Dashboard extends React.Component {
       if (selection.length) return selection.includes(city);
       return true;
     }
-    const chartData = Object.keys(xgrouped).map((key) => ({
+    let chartData = Object.keys(xgrouped).map((key) => ({
       x: key,
       label: selectionKeys
         .filter(selectionFilter)
@@ -100,16 +101,32 @@ export class Dashboard extends React.Component {
           0
         ),
     }));
-    const additionalBarsData = _.take(selection, 4).map((city) => {
-      return Object.keys(xgrouped).map((key) => {
+    if (this.state.normalize) {
+      const max = _.max(chartData.map((e) => e.y));
+      chartData = chartData.map((entry) => ({
+        ...entry,
+        label: (entry.label * 1000) / max,
+        y: (entry.y * 1000) / max,
+      }));
+    }
+    let additionalBarsData = _.take(selection, 4).map((city) => {
+      let arr = Object.keys(xgrouped).map((key) => {
         return {
           x: key,
           label: xgrouped[key][city]?.[ylabel] || 0,
           y: xgrouped[key][city]?.[ylabel] || 0,
         };
       });
+      if (this.state.normalize) {
+        const max = _.max(arr.map((e) => e.y));
+        return arr.map((entry) => ({
+          ...entry,
+          label: (entry.label * 1000) / max,
+          y: (entry.y * 1000) / max,
+        }));
+      }
+      return arr;
     });
-    console.log(additionalBarsData);
 
     return (
       <section className="w-100">
@@ -138,18 +155,42 @@ export class Dashboard extends React.Component {
         </div>
         <div className="card">
           <div className="card-header">
-            <input
-              className="form-check-input mr-1"
-              type="checkbox"
-              checked={this.state.showAll}
-              onChange={(e) => {
-                this.setState({ showAll: e.target.checked });
-              }}
-              id="flexSwitchCheckDefault"
-            />
-            <label className="form-check-label" for="flexSwitchCheckDefault">
-              Show all
-            </label>
+            <div className="flex">
+              <div>
+                <input
+                  className="form-check-input mr-1"
+                  type="checkbox"
+                  checked={this.state.showAll}
+                  onChange={(e) => {
+                    this.setState({ showAll: e.target.checked });
+                  }}
+                  id="flexSwitchCheckDefault"
+                />
+                <label
+                  className="form-check-label"
+                  for="flexSwitchCheckDefault"
+                >
+                  Show all
+                </label>
+              </div>
+              <div>
+                <input
+                  className="form-check-input mr-1"
+                  type="checkbox"
+                  checked={this.state.normalize}
+                  onChange={(e) => {
+                    this.setState({ normalize: e.target.checked });
+                  }}
+                  id="flexSwitchCheckDefault"
+                />
+                <label
+                  className="form-check-label"
+                  for="flexSwitchCheckDefault"
+                >
+                  Normalize
+                </label>
+              </div>
+            </div>
           </div>
           <div className="card-body">
             <VictoryChart theme={VictoryTheme.grayscale}>
