@@ -82,7 +82,7 @@ export class Dashboard extends React.Component {
     }
     return (
       <section className="w-100">
-        <h1>By {selectionlabel}</h1>
+        <h1>{this.props.label}</h1>
         <div className="py-3">
           <label for="selection" className="form-label">
             Choose {selectionlabel}
