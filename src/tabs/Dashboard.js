@@ -228,7 +228,7 @@ export class Dashboard extends React.Component {
             </VictoryChart>
           </div>
         </div>
-        <div style={{ overflow: "hidden" }} className="card">
+        <div style={{ overflow: "hidden" }} className="card mt-4">
           <div className="table-responsive">
             <table className="table table-bordered">
               <thead>
