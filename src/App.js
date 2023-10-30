@@ -9,7 +9,7 @@ class App extends React.Component {
   state = {
     selections: initialSelections,
     selection: initialSelections.length ? initialSelections[0].label : null,
-    viewName: "",
+    processing: false,
     formInput: "",
   };
   render() {
@@ -90,35 +90,29 @@ class App extends React.Component {
               <div className="card-body">
                 <h2>Add new datapoint</h2>
                 <form
-                  onSubmit={() => {
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    console.log(this.state.formInput);
                     this.setState({
-                      selection: this.state.viewName,
-                      viewName: "",
+                      processing: true,
+                    });
+                    const response = await fetch(this.state.formInput);
+                    const viewName = (await response.json()).title;
+                    console.log(viewName);
+                    this.setState({
+                      selection: viewName,
+                      processing: false,
                       formInput: "",
                       selections: [
                         ...this.state.selections,
                         {
-                          label: this.state.viewName,
+                          label: viewName,
                           dataUrl: this.state.formInput,
                         },
                       ],
                     });
                   }}
                 >
-                  <div className="form-group">
-                    <label for="0">View name</label>
-                    <input
-                      className="form-control"
-                      id="0"
-                      required
-                      value={this.state.viewName}
-                      onChange={(e) => {
-                        this.setState({
-                          viewName: e.target.value,
-                        });
-                      }}
-                    ></input>
-                  </div>
                   <div className="form-group mt-3">
                     <label for="1">Heroku JSON url</label>
                     <input
@@ -133,7 +127,12 @@ class App extends React.Component {
                       }}
                     ></input>
                   </div>
-                  <button className="btn btn-primary mt-3">Submit</button>
+                  <button
+                    disabled={this.state.processing}
+                    className="btn btn-primary mt-3"
+                  >
+                    Submit
+                  </button>
                 </form>
               </div>
             </div>
