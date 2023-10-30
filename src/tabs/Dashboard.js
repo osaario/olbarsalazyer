@@ -22,6 +22,7 @@ export class Dashboard extends React.Component {
   state = {
     selection: [],
     data: null,
+    showAll: true,
   };
   render() {
     if (!this.state.data)
@@ -99,17 +100,15 @@ export class Dashboard extends React.Component {
           0
         ),
     }));
-    const additionalBarsData =
-      selection.length < 3 &&
-      selection.map((city) => {
-        return Object.keys(xgrouped).map((key) => {
-          return {
-            x: key,
-            label: xgrouped[key][city][ylabel],
-            y: xgrouped[key][city][ylabel],
-          };
-        });
+    const additionalBarsData = _.take(selection, 4).map((city) => {
+      return Object.keys(xgrouped).map((key) => {
+        return {
+          x: key,
+          label: xgrouped[key][city]?.[ylabel] || 0,
+          y: xgrouped[key][city]?.[ylabel] || 0,
+        };
       });
+    });
     console.log(additionalBarsData);
 
     return (
@@ -137,29 +136,57 @@ export class Dashboard extends React.Component {
             ))}
           </select>
         </div>
-        <VictoryChart theme={VictoryTheme.grayscale}>
-          <VictoryGroup offset={BAR_WIDTH} colorScale={"qualitative"}>
-            <VictoryBar
-              barWidth={BAR_WIDTH}
-              labelComponent={<VictoryTooltip />}
-              data={chartData}
+        <div className="card">
+          <div className="card-header">
+            <input
+              className="form-check-input mr-1"
+              type="checkbox"
+              checked={this.state.showAll}
+              onChange={(e) => {
+                this.setState({ showAll: e.target.checked });
+              }}
+              id="flexSwitchCheckDefault"
             />
-          </VictoryGroup>
-          <VictoryAxis
-            style={{
-              tickLabels: { fontSize: 6, padding: 8 },
-            }}
-            tickFormat={
-              xformat === "month" ? formats["month"] : formats.default
-            }
-          ></VictoryAxis>
-          <VictoryAxis
-            style={{
-              tickLabels: { fontSize: 8, padding: 0 },
-            }}
-            dependentAxis
-          ></VictoryAxis>
-        </VictoryChart>
+            <label className="form-check-label" for="flexSwitchCheckDefault">
+              Show all
+            </label>
+          </div>
+          <div className="card-body">
+            <VictoryChart theme={VictoryTheme.grayscale}>
+              <VictoryGroup offset={BAR_WIDTH} colorScale={"qualitative"}>
+                {this.state.showAll && (
+                  <VictoryBar
+                    barWidth={BAR_WIDTH}
+                    labelComponent={<VictoryTooltip />}
+                    data={chartData}
+                  />
+                )}
+                {!!additionalBarsData &&
+                  additionalBarsData.map((data) => (
+                    <VictoryBar
+                      barWidth={BAR_WIDTH}
+                      labelComponent={<VictoryTooltip />}
+                      data={data}
+                    />
+                  ))}
+              </VictoryGroup>
+              <VictoryAxis
+                style={{
+                  tickLabels: { fontSize: 6, padding: 8 },
+                }}
+                tickFormat={
+                  xformat === "month" ? formats["month"] : formats.default
+                }
+              ></VictoryAxis>
+              <VictoryAxis
+                style={{
+                  tickLabels: { fontSize: 8, padding: 0 },
+                }}
+                dependentAxis
+              ></VictoryAxis>
+            </VictoryChart>
+          </div>
+        </div>
         <div style={{ overflow: "hidden" }} className="card">
           <div className="table-responsive">
             <table className="table table-bordered">
