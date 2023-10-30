@@ -3,12 +3,14 @@ import {
   VictoryBar,
   VictoryChart,
   VictoryTheme,
+  VictoryGroup,
   VictoryAxis,
   VictoryTooltip,
 } from "victory";
 import _ from "lodash";
 import moment from "moment";
 import { getData } from "../dumps";
+const BAR_WIDTH = 4;
 
 const formats = {
   month: (v) => moment(v).format("M.YY"),
@@ -80,6 +82,36 @@ export class Dashboard extends React.Component {
       if (selection.length) return selection.includes(city);
       return true;
     }
+    const chartData = Object.keys(xgrouped).map((key) => ({
+      x: key,
+      label: selectionKeys
+        .filter(selectionFilter)
+        .reduce(
+          (acc, city) =>
+            acc + (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
+          0
+        ),
+      y: selectionKeys
+        .filter(selectionFilter)
+        .reduce(
+          (acc, city) =>
+            acc + (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
+          0
+        ),
+    }));
+    const additionalBarsData =
+      selection.length < 3 &&
+      selection.map((city) => {
+        return Object.keys(xgrouped).map((key) => {
+          return {
+            x: key,
+            label: xgrouped[key][city][ylabel],
+            y: xgrouped[key][city][ylabel],
+          };
+        });
+      });
+    console.log(additionalBarsData);
+
     return (
       <section className="w-100">
         <h1>{this.props.label}</h1>
@@ -106,28 +138,13 @@ export class Dashboard extends React.Component {
           </select>
         </div>
         <VictoryChart theme={VictoryTheme.grayscale}>
-          <VictoryBar
-            labelComponent={<VictoryTooltip />}
-            data={Object.keys(xgrouped).map((key) => ({
-              x: key,
-              label: selectionKeys
-                .filter(selectionFilter)
-                .reduce(
-                  (acc, city) =>
-                    acc +
-                    (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
-                  0
-                ),
-              y: selectionKeys
-                .filter(selectionFilter)
-                .reduce(
-                  (acc, city) =>
-                    acc +
-                    (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
-                  0
-                ),
-            }))}
-          />
+          <VictoryGroup offset={BAR_WIDTH} colorScale={"qualitative"}>
+            <VictoryBar
+              barWidth={BAR_WIDTH}
+              labelComponent={<VictoryTooltip />}
+              data={chartData}
+            />
+          </VictoryGroup>
           <VictoryAxis
             style={{
               tickLabels: { fontSize: 6, padding: 8 },
