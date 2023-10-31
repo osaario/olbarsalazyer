@@ -12,6 +12,18 @@ import moment from "moment";
 import { getData } from "../dumps";
 const BAR_WIDTH = 4;
 
+const stringToColour = (str) => {
+  let hash = 0;
+  str.split("").forEach((char) => {
+    hash = char.charCodeAt(0) + ((hash << 5) - hash);
+  });
+  let colour = "#";
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    colour += value.toString(16).padStart(2, "0");
+  }
+  return colour;
+};
 const formats = {
   month: (v) => moment(v).format("M.YY"),
   sum: (v) => Math.round(parseFloat(v)),
@@ -88,6 +100,7 @@ export class Dashboard extends React.Component {
       let arr = Object.keys(xgrouped).map((key) => {
         return {
           x: key,
+          city,
           label: xgrouped[key][city]?.[ylabel] || 0,
           y: xgrouped[key][city]?.[ylabel] || 0,
         };
@@ -106,101 +119,128 @@ export class Dashboard extends React.Component {
     return (
       <section className="w-100">
         <h1>{this.props.label}</h1>
-        <div className="py-3">
-          <label for="selection" className="form-label">
-            Choose {selectionlabel} (Hold ⌘ to select multiple)
-          </label>
-          <select
-            value={selection}
-            className="form-control"
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions).map(
-                (o) => o.value
-              );
-              setSelection(selected);
-            }}
-            name="selection"
-            id="selection"
-            multiple
-          >
-            {selectionKeys.map((key) => (
-              <option value={key}>{key}</option>
-            ))}
-          </select>
-        </div>
-        <div className="card">
-          <div className="card-header">
-            <div className="flex">
-              <div>
-                <input
-                  className="form-check-input mr-1"
-                  type="checkbox"
-                  checked={this.state.showAll}
-                  onChange={(e) => {
-                    this.setState({ showAll: e.target.checked });
-                  }}
-                  id="flexSwitchCheckDefault"
-                />
-                <label
-                  className="form-check-label"
-                  for="flexSwitchCheckDefault"
-                >
-                  Show all
-                </label>
-              </div>
-              <div>
-                <input
-                  className="form-check-input mr-1"
-                  type="checkbox"
-                  checked={this.state.normalize}
-                  onChange={(e) => {
-                    this.setState({ normalize: e.target.checked });
-                  }}
-                  id="flexSwitchCheckDefault"
-                />
-                <label
-                  className="form-check-label"
-                  for="flexSwitchCheckDefault"
-                >
-                  Normalize
-                </label>
+        <div className="row mt-4">
+          <div className="col-xs-12 col-md-6 col-lg-3">
+            <div className="card">
+              <div className="card-header">Settings</div>
+              <div className="card-body">
+                <div className="form-group">
+                  <label for="selection" className="form-label">
+                    Choose {selectionlabel} (Hold ⌘ to select multiple){" "}
+                  </label>
+                  <select
+                    value={selection}
+                    className="form-control"
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions).map(
+                        (o) => o.value
+                      );
+                      setSelection(selected);
+                    }}
+                    name="selection"
+                    style={{ height: 300 }}
+                    id="selection"
+                    multiple
+                  >
+                    {selectionKeys.map((key) => (
+                      <option value={key}>{key}</option>
+                    ))}
+                  </select>
+                  <button className="btn btn-xs mt-2 btn-primary">
+                    Group selection
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          <div className="card-body">
-            <VictoryChart theme={VictoryTheme.grayscale}>
-              <VictoryGroup offset={BAR_WIDTH} colorScale={"qualitative"}>
-                {this.state.showAll && (
-                  <VictoryBar
-                    barWidth={BAR_WIDTH}
-                    labelComponent={<VictoryTooltip />}
-                    data={chartData}
-                  />
-                )}
-                {!!additionalBarsData &&
-                  additionalBarsData.map((data) => (
-                    <VictoryBar
-                      barWidth={BAR_WIDTH}
-                      labelComponent={<VictoryTooltip />}
-                      data={data}
+          <div className="col-xs-12 col-md-6 col-lg-9">
+            <div className="card">
+              <div className="card-header">
+                <div className="d-flex">
+                  <div style={{ marginRight: "0.5rem" }}>
+                    <input
+                      className="form-check-input"
+                      style={{ marginRight: "0.25rem" }}
+                      type="checkbox"
+                      checked={this.state.showAll}
+                      onChange={(e) => {
+                        this.setState({ showAll: e.target.checked });
+                      }}
+                      id="flexSwitchCheckDefault"
                     />
-                  ))}
-              </VictoryGroup>
-              <VictoryAxis
-                style={{
-                  tickLabels: { fontSize: 6, padding: 8 },
-                }}
-                tickFormat={
-                  xformat === "month" ? formats["month"] : formats.default
-                }
-              ></VictoryAxis>
-              <VictoryAxis
-                style={{
-                  tickLabels: { fontSize: 8, padding: 0 },
-                }}
-                dependentAxis
-              ></VictoryAxis>
-            </VictoryChart>
+                    <label
+                      className="pl-2 form-check-label"
+                      for="flexSwitchCheckDefault"
+                    >
+                      Show all
+                    </label>
+                  </div>
+                  <div style={{ marginRight: "0.5rem" }}>
+                    <input
+                      className="form-check-input"
+                      style={{ marginRight: "0.25rem" }}
+                      type="checkbox"
+                      checked={this.state.normalize}
+                      onChange={(e) => {
+                        this.setState({ normalize: e.target.checked });
+                      }}
+                      id="flexSwitchCheckDefault"
+                    />
+                    <label
+                      className="form-check-label"
+                      for="flexSwitchCheckDefault"
+                    >
+                      Normalize
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="card-body">
+                <VictoryChart theme={VictoryTheme.grayscale}>
+                  <VictoryGroup offset={BAR_WIDTH} colorScale={"qualitative"}>
+                    {this.state.showAll && (
+                      <VictoryBar
+                        barWidth={BAR_WIDTH}
+                        labelComponent={<VictoryTooltip />}
+                        style={{
+                          data: {
+                            fill: "black",
+                          },
+                        }}
+                        data={chartData}
+                      />
+                    )}
+                    {!!additionalBarsData &&
+                      additionalBarsData.map((data) => (
+                        <VictoryBar
+                          barWidth={BAR_WIDTH}
+                          labelComponent={<VictoryTooltip />}
+                          style={{
+                            data: {
+                              fill: stringToColour(data[0].city),
+                            },
+                          }}
+                          data={data}
+                        />
+                      ))}
+                  </VictoryGroup>
+                  <VictoryAxis
+                    style={{
+                      tickLabels: { fontSize: 6, padding: 8 },
+                    }}
+                    tickFormat={
+                      xformat === "month" ? formats["month"] : formats.default
+                    }
+                  ></VictoryAxis>
+                  <VictoryAxis
+                    style={{
+                      tickLabels: { fontSize: 8, padding: 0 },
+                    }}
+                    dependentAxis
+                  ></VictoryAxis>
+                </VictoryChart>
+              </div>
+            </div>
           </div>
         </div>
         <div style={{ overflow: "hidden" }} className="card mt-4">

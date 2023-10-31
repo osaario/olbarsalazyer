@@ -89,7 +89,7 @@ class App extends React.Component {
             </ul>
           </div>
         </nav>
-        <div className="container p-5">
+        <div className="container-flex p-5">
           {selection ? (
             <div>
               <Dashboard
