@@ -35,6 +35,7 @@ export class Dashboard extends React.Component {
   state = {
     selection: [],
     data: null,
+    groups: [],
     showAll: true,
     normalize: false,
   };
@@ -147,9 +148,68 @@ export class Dashboard extends React.Component {
                       <option value={key}>{key} </option>
                     ))}
                   </select>
-                  <button className="btn btn-xs mt-2 btn-primary">
-                    Group selection
-                  </button>
+                  <div className="d-flex pt-2">
+                    <button
+                      disabled={!selection.length}
+                      onClick={() => {
+                        const name = window.prompt(
+                          "Enter group name (leave blank for default)"
+                        );
+                        const expandedSelection = selection.flatMap((sel) => {
+                          const g = this.state.groups.find(
+                            (g) => g.name === sel
+                          );
+                          if (g) return g.group;
+                          else return [sel];
+                        });
+                        const group = {
+                          name: (name || selection[0]) + " (Group)",
+                          group: expandedSelection,
+                        };
+                        this.setState(
+                          {
+                            groups: [...this.state.groups, group],
+                          },
+                          () => {
+                            console.log(this.state);
+                            const recalculated = this.recalculateData(
+                              this.state.data,
+                              this.state.selectionlabel,
+                              this.state.xlabel,
+                              this.state.ylabel,
+                              this.state.groups
+                            );
+                            this.setState({
+                              ...recalculated,
+                              selection: [group.name],
+                            });
+                          }
+                        );
+                      }}
+                      className="btn btn-sm btn-primary me-2"
+                    >
+                      Group selection
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => {
+                        const recalculated = this.recalculateData(
+                          this.state.data,
+                          this.state.selectionlabel,
+                          this.state.xlabel,
+                          this.state.ylabel,
+                          []
+                        );
+                        this.setState({
+                          ...recalculated,
+                          groups: [],
+                          selection: [],
+                        });
+                      }}
+                    >
+                      Remove groups
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -313,8 +373,9 @@ export class Dashboard extends React.Component {
       </section>
     );
   }
-  recalculateData(data, selectionlabel, xlabel, ylabel) {
-    const cleaned = _.chain(data)
+  recalculateData(data, selectionlabel, xlabel, ylabel, groups) {
+    console.log(groups);
+    const cleaned = _.chain(JSON.parse(JSON.stringify(data)))
       // sum up cities
       .map((dp) => {
         Object.keys(dp).forEach((key) => {
@@ -322,6 +383,15 @@ export class Dashboard extends React.Component {
         });
         return dp;
       })
+      .map((row) => {
+        const g = groups.find((group) => {
+          return group.group.includes(row[selectionlabel]);
+        });
+        if (g) {
+          row[selectionlabel] = g.name;
+        }
+        return row;
+      }, [])
       .reduce((acc, val) => {
         const entry = acc.find(
           (v) =>
@@ -334,6 +404,7 @@ export class Dashboard extends React.Component {
         }
         return [...acc, val];
       }, [])
+      // groups reducer
       .value();
 
     const xgrouped = _.chain(cleaned)
@@ -371,7 +442,13 @@ export class Dashboard extends React.Component {
       xformat,
       selectionlabel,
       yformat,
-      ...this.recalculateData(data, selectionlabel, xlabel, ylabel),
+      ...this.recalculateData(
+        data,
+        selectionlabel,
+        xlabel,
+        ylabel,
+        this.state.groups
+      ),
     });
   }
 }
