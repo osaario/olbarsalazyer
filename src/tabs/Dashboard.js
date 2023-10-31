@@ -41,40 +41,15 @@ export class Dashboard extends React.Component {
           </div>
         </div>
       );
-    const { ylabel, xlabel, xformat, selectionlabel, yformat, data } =
-      this.state;
-    const cleaned = _.chain(data)
-      // sum up cities
-      .reduce((acc, val) => {
-        const entry = acc.find(
-          (v) =>
-            v[selectionlabel] === val[selectionlabel] &&
-            v[xlabel] === val[xlabel]
-        );
-        if (entry) {
-          entry[ylabel] += val[ylabel];
-          return acc;
-        }
-        return [...acc, val];
-      }, [])
-      .value();
-
-    const xgrouped = _.chain(cleaned)
-      .groupBy((row) => {
-        return row[xlabel];
-      })
-      .mapValues((arr) => _.keyBy(arr, (row) => row[selectionlabel]))
-      .value();
-
-    const selectionbased = _.chain(cleaned)
-      .groupBy((row) => {
-        return row[selectionlabel];
-      })
-      .value();
-    const selectionKeys = _.sortBy(
-      Object.keys(selectionbased),
-      (city) => -selectionbased[city][0][ylabel]
-    );
+    const {
+      ylabel,
+      xlabel,
+      xformat,
+      selectionlabel,
+      yformat,
+      xgrouped,
+      selectionKeys,
+    } = this.state;
     const selection = this.state.selection;
     const setSelection = (selection) => {
       this.setState({ selection });
@@ -290,6 +265,55 @@ export class Dashboard extends React.Component {
     const { data, ylabel, xlabel, xformat, selectionlabel, yformat } = getData(
       await response.json()
     );
-    this.setState({ data, ylabel, xlabel, xformat, selectionlabel, yformat });
+    const cleaned = _.chain(data)
+      // sum up cities
+      .map((dp) => {
+        Object.keys(dp).forEach((key) => {
+          if (typeof dp[key] === "string") dp[key] = _.trim(dp[key]);
+        });
+        return dp;
+      })
+      .reduce((acc, val) => {
+        const entry = acc.find(
+          (v) =>
+            v[selectionlabel] === val[selectionlabel] &&
+            v[xlabel] === val[xlabel]
+        );
+        if (entry) {
+          entry[ylabel] += val[ylabel];
+          return acc;
+        }
+        return [...acc, val];
+      }, [])
+      .value();
+
+    const xgrouped = _.chain(cleaned)
+      .groupBy((row) => {
+        return row[xlabel];
+      })
+      .mapValues((arr) => _.keyBy(arr, (row) => row[selectionlabel]))
+      .value();
+
+    const selectionbased = _.chain(cleaned)
+      .groupBy((row) => {
+        return row[selectionlabel];
+      })
+      .value();
+    const selectionKeys = _.sortBy(
+      Object.keys(selectionbased),
+      (city) => -selectionbased[city][0][ylabel]
+    );
+    this.setState({
+      data,
+      ylabel,
+      xlabel,
+      xformat,
+      selectionlabel,
+      yformat,
+      cleaned,
+      xgrouped,
+      selectionKeys,
+      selectionbased,
+    });
   }
 }
