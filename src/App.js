@@ -52,6 +52,7 @@ class App extends React.Component {
                     <a
                       class="dropdown-item"
                       type="button"
+                      key={sel.label}
                       onClick={() => {
                         this.setState({
                           selection: sel.label,
@@ -61,8 +62,9 @@ class App extends React.Component {
                       {sel.label}
                     </a>
                   ))}
+                  <div className="dropdown-divider"></div>
                   <a
-                    class="dropdown-item"
+                    className="dropdown-item"
                     type="button"
                     onClick={() => {
                       this.setState({
@@ -71,6 +73,16 @@ class App extends React.Component {
                     }}
                   >
                     Add new datapoint
+                  </a>
+                  <div className="dropdown-divider"></div>
+                  <a
+                    className="dropdown-item text-danger"
+                    type="button"
+                    onClick={() => {
+                      this.setState({ selections: [], selection: null });
+                    }}
+                  >
+                    Clear existing datapoints
                   </a>
                 </div>
               </li>
