@@ -75,20 +75,16 @@ export class Dashboard extends React.Component {
     }
     let chartData = Object.keys(xgrouped).map((key) => ({
       x: key,
-      label: selectionKeys
-        .filter(selectionFilter)
-        .reduce(
-          (acc, city) =>
-            acc + (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
-          0
-        ),
-      y: selectionKeys
-        .filter(selectionFilter)
-        .reduce(
-          (acc, city) =>
-            acc + (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
-          0
-        ),
+      label: selectionKeys.reduce(
+        (acc, city) =>
+          acc + (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
+        0
+      ),
+      y: selectionKeys.reduce(
+        (acc, city) =>
+          acc + (xgrouped[key][city] ? xgrouped[key][city][ylabel] : 0),
+        0
+      ),
     }));
     if (this.state.normalize) {
       const max = _.max(chartData.map((e) => e.y));
@@ -350,7 +346,7 @@ export class Dashboard extends React.Component {
                         </td>
                       }
                     </td>
-                    {selectionKeys.filter(selectionFilter).map((skey) => {
+                    {selectionKeys.map((skey) => {
                       const formatter = yformat
                         ? formats[yformat]
                         : formats.default;
