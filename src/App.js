@@ -101,6 +101,25 @@ class App extends React.Component {
             <div className="card">
               <div className="card-body">
                 <h2>Add new datapoint</h2>
+                <p>
+                  Dataclip needs to follow these rules:
+                  <ul>
+                    <li>Can have only three fields</li>
+                    <li>
+                      2. First field is the X-axis, Second field is the Y-axis
+                      and last field is the grouping selector (F.ex. ["month",
+                      "sum", "city"]
+                    </li>
+                    <li>
+                      Name of the field will determine its formatting:
+                      <ul>
+                        <li>"month": MM.Y</li>
+                        <li>"sum": Math.round()</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </p>
+
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
