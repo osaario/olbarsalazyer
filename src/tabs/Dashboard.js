@@ -260,11 +260,7 @@ export class Dashboard extends React.Component {
       </section>
     );
   }
-  async componentDidMount() {
-    const response = await fetch(this.props.dataUrl);
-    const { data, ylabel, xlabel, xformat, selectionlabel, yformat } = getData(
-      await response.json()
-    );
+  recalculateData(data, selectionlabel, xlabel, ylabel) {
     const cleaned = _.chain(data)
       // sum up cities
       .map((dp) => {
@@ -303,6 +299,18 @@ export class Dashboard extends React.Component {
       Object.keys(selectionbased),
       (city) => -selectionbased[city][0][ylabel]
     );
+    return {
+      cleaned,
+      xgrouped,
+      selectionKeys,
+      selectionbased,
+    };
+  }
+  async componentDidMount() {
+    const response = await fetch(this.props.dataUrl);
+    const { data, ylabel, xlabel, xformat, selectionlabel, yformat } = getData(
+      await response.json()
+    );
     this.setState({
       data,
       ylabel,
@@ -310,10 +318,7 @@ export class Dashboard extends React.Component {
       xformat,
       selectionlabel,
       yformat,
-      cleaned,
-      xgrouped,
-      selectionKeys,
-      selectionbased,
+      ...this.recalculateData(data, selectionlabel, xlabel, ylabel),
     });
   }
 }
