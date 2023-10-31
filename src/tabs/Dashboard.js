@@ -5,6 +5,7 @@ import {
   VictoryTheme,
   VictoryGroup,
   VictoryAxis,
+  VictoryLegend,
   VictoryTooltip,
 } from "victory";
 import _ from "lodash";
@@ -143,7 +144,7 @@ export class Dashboard extends React.Component {
                     multiple
                   >
                     {selectionKeys.map((key) => (
-                      <option value={key}>{key}</option>
+                      <option value={key}>{key} </option>
                     ))}
                   </select>
                   <button className="btn btn-xs mt-2 btn-primary">
@@ -197,6 +198,18 @@ export class Dashboard extends React.Component {
               </div>
               <div className="card-body">
                 <VictoryChart theme={VictoryTheme.grayscale}>
+                  <VictoryLegend
+                    orientation="horizontal"
+                    gutter={10}
+                    style={{
+                      border: { stroke: "black" },
+                      labels: { fontSize: 8 },
+                    }}
+                    data={selection.map((key) => ({
+                      name: key,
+                      symbol: { fill: stringToColour(key) },
+                    }))}
+                  />
                   <VictoryGroup offset={BAR_WIDTH} colorScale={"qualitative"}>
                     {this.state.showAll && (
                       <VictoryBar
